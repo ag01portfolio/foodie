@@ -15,10 +15,6 @@ async function apiFetch<T,>(endpoint: string): Promise<T> {
   }
 }
 
-
-
-
-
 interface CategoriesResponse {
   categories: ApiCategory[];
 }
