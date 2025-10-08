@@ -6,8 +6,6 @@ interface User {
   picture: string;
 }
 
-
-
 interface AuthContextType {
   user: User | null;
   login: (username: string) => void;
