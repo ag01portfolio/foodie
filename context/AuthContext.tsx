@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = (username: string) => {
-    // This is a simulated login.
+    // ToD0 : This is a simulated login. In progress 
     const mockUser: User = {
       name: username,
       email: `${username.toLowerCase().replace(' ', '.')}@example.com`,
