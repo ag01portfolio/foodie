@@ -1,4 +1,4 @@
-# Foodie - Indian Recipe App 🚀
+# Foodie - Indian Recipe App 
 
 A high-performance [60fps scrolling even with 1000+ items] React Native recipe application optimized for 
 **low-end devices**, using the **highly optimized FlashList** component 
