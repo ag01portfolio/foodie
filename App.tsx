@@ -1,42 +1,88 @@
-import React, { useState } from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
-import { CartProvider } from './context/CartContext';
-import { AuthProvider } from './context/AuthContext';
-import Header from './components/Header';
-import Cart from './components/Cart';
-import HomePage from './components/HomePage';
-import CategoryPage from './components/CategoryPage';
-import MealDetailPage from './components/MealDetailPage';
-import LoginModal from './components/LoginModal';
+import React from 'react';
+import { StatusBar, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import LoginScreen from './src/screens/LoginScreen';
+import RecipeListScreen from './src/screens/RecipeListScreen';
+import RecipeDetailScreen from './src/screens/RecipeDetailScreen';
 
-const App: React.FC = () => {
-    const [isCartOpen, setIsCartOpen] = useState(false);
+export type RootStackParamList = {
+  Login: undefined;
+  RecipeList: undefined;
+  RecipeDetail: { recipeId: string };
+};
 
-    return (
-        <AuthProvider>
-            <CartProvider>
-                <HashRouter>
-                    <div className="app">
-                        <Header onCartClick={() => setIsCartOpen(true)} />
-                        <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-                        <main className="main-content container">
-                            <Routes>
-                                <Route path="/" element={<HomePage />} />
-                                <Route path="/category/:categoryName" element={<CategoryPage />} />
-                                <Route path="/meal/:mealId" element={<MealDetailPage />} />
-                            </Routes>
-                        </main>
-                        <footer className="app-footer">
-                            <div className="container footer-container">
-                                <p>&copy; {new Date().getFullYear()} Foodie. All Rights Reserved.</p>
-                                <p>Powered by React & TheMealDB API.</p>
-                            </div>
-                        </footer>
-                    </div>
-                </HashRouter>
-            </CartProvider>
-        </AuthProvider>
-    );
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <StatusBar barStyle="dark-content" backgroundColor="#FF6B6B" />
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: '#FF6B6B',
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+              fontWeight: '700',
+              fontSize: 18,
+            },
+            headerShadowVisible: false,
+            animation: 'slide_from_right',
+          }}
+        >
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="RecipeList"
+            component={RecipeListScreen}
+            options={({ navigation }) => ({
+              title: 'Foodie',
+              headerLargeTitle: false,
+              headerBackVisible: false,
+              headerRight: () => (
+                <TouchableOpacity
+                  style={styles.logoutButton}
+                  onPress={() => navigation.navigate('Login')}
+                >
+                  <Text style={styles.logoutButtonText}>Logout</Text>
+                </TouchableOpacity>
+              ),
+            })}
+          />
+          <Stack.Screen
+            name="RecipeDetail"
+            component={RecipeDetailScreen}
+            options={{
+              title: 'Recipe Details',
+              headerBackTitle: 'Back',
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
+  );
 }
 
-export default App;
+const styles = StyleSheet.create({
+  logoutButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 8,
+  },
+  logoutButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+});
