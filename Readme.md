@@ -63,6 +63,8 @@ The backend provides 8 REST endpoints:
   - By Category
 - **Optimized Rendering**: Only renders visible items
 
+
+
 ### Screen 2: Recipe Detail
 - **Large Hero Image**: Full-width recipe photo
 - **Ingredients List**: Organized list with measurements
@@ -79,3 +81,200 @@ The backend provides 8 REST endpoints:
 - **@shopify/flash-list**: ^1.6.3 (High-performance list)
 - **@react-navigation/native**: ^6.1.9 (Navigation)
 - **expo-image**: ~1.10.1 (Optimized images)
+
+---------------------------
+
+
+##  Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        MOBILE APPLICATION                        │
+│                     (React Native - iOS/Android)                 │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                │ HTTP/REST API
+                                │
+        ┌───────────────────────┼───────────────────────┐
+        │                                              │
+        │ GET_LOCAL_DATA Flag                          │
+        │                                              │
+    ┌───▼────┐                                ┌───────▼────────┐
+    │  MOCK  │                                │  BACKEND API   │
+    │  DATA  │                                │  (Express.js)  │
+    │        │                                └────────┬───────┘
+    │ Local  │                                         │
+    │Storage │                                         │ Mongoose ODM
+    └────────┘                                         │
+src\mockDB                                   ┌────────▼───────┐
+                                             │    MongoDB     │
+                                             │   (Database)   │
+                                             └────────────────┘
+
+                                             
+
+
+```
+
+---------------------------------------------------------------------------------
+##  Data Flow
+
+###  Recipe List Flow
+```
+User Opens App
+      │
+      ▼
+┌─────────────────┐
+│ RecipeListScreen│
+│   Component     │
+└────────┬────────┘
+         │
+         │ fetchRecipes()
+         ▼
+┌─────────────────┐
+│  apiService.ts  │
+└────────┬────────┘
+         │
+         │ Check GET_LOCAL_DATA flag
+         │
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+┌─────┐   ┌─────────┐
+│Mock │   │ Backend │
+│Data │   │   API   │
+└──┬──┘   └────┬────┘
+   │           │
+   │           │ HTTP GET /api/recipes
+   │           ▼
+   │      ┌─────────┐
+   │      │MongoDB  │
+   │      └────┬────┘
+   │           │
+   └───────┬───┘
+           │
+           │ Recipe List Data
+           ▼
+    ┌─────────────┐
+    │   UI Render │
+    │   FlatList  │
+    └─────────────┘
+```
+--------------------------------------------------------------------------------
+###  Recipe Detail Flow
+
+```
+User Taps Recipe
+      │
+      ▼
+┌──────────────────┐
+│Navigation Service│
+│ navigate()       │
+└────────┬─────────┘
+         │
+         │ Pass recipe ID
+         ▼
+┌──────────────────┐
+│RecipeDetailScreen│
+└────────┬─────────┘
+         │
+         │ fetchRecipeById(id)
+         ▼
+┌──────────────────┐
+│  apiService.ts   │
+└────────┬─────────┘
+         │
+         │ Check GET_LOCAL_DATA flag
+         │
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+┌─────┐   ┌─────────┐
+│Mock │   │ Backend │
+│Data │   │   API   │
+└──┬──┘   └────┬────┘
+   │           │
+   │           │ HTTP GET /api/recipes/:id
+   │           ▼
+   │      ┌─────────┐
+   │      │MongoDB  │
+   │      └────┬────┘
+   │           │
+   └───────┬───┘
+           │
+           │ Full Recipe Detail
+           ▼
+    ┌─────────────────┐
+    │   UI Render     │
+    │ ScrollView with │
+    │ Ingredients &   │
+    │ Instructions    │
+    └─────────────────┘
+```
+---------------------------------------------------------
+### 4.3 Search Flow
+
+```
+User Types Search Query
+         │
+         ▼
+┌──────────────────┐
+│  Search Input    │
+│  (Debounced)     │
+└────────┬─────────┘
+         │
+         │ searchRecipes(query)
+         ▼
+┌──────────────────┐
+│  apiService.ts   │
+└────────┬─────────┘
+         │
+         │ Check GET_LOCAL_DATA flag
+         │
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+┌─────────┐   ┌─────────┐
+│  Local  │   │ Backend │
+│ Filter  │   │   API   │
+└────┬────┘   └────┬────┘
+     │             │
+     │             │ HTTP GET /api/recipes/search?q=query
+     │             ▼
+     │        ┌─────────┐
+     │        │MongoDB  │
+     │        │  Text   │
+     │        │ Search  │
+     │        └────┬────┘
+     │             │
+     └──────┬──────┘
+            │
+            │ Filtered Results
+            ▼
+     ┌─────────────┐
+     │  UI Update  │
+     │  FlatList   │
+     └─────────────┘
+```
+### Frontend Stack
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| Framework | React Native | 0.73.2 | Cross-platform mobile development |
+| Language | TypeScript | 5.3.0 | Type-safe JavaScript |
+| UI Library | React | 18.2.0 | Component-based UI |
+| Navigation | React Navigation | 6.x | Screen routing |
+| Image Loading | FastImage | 8.6.3 | Optimized image caching |
+| Build Tool | Metro | Latest | JavaScript bundler |
+| Dev Tool | Watchman | 2025.11 | File watching |
+
+### Backend Stack
+| Layer |  Technology |  Version | Purpose |
+|-------|-----------|---------|---------|
+| Runtime | Node.js | 18+ | JavaScript runtime |
+| Framework | Express.js | 4.18.2 | Web application framework |
+| Database | MongoDB | 6.0+ | NoSQL document database |
+| ODM | Mongoose | 8.0.0 | MongoDB object modeling |
+| Middleware | CORS | Latest | Cross-origin resource sharing |
+| Middleware | Morgan | Latest | HTTP request logging |
+| Environment | dotenv | Latest | Environment variable management |
+| Dev Tool | Nodemon | Latest | Auto-restart on file changes |
